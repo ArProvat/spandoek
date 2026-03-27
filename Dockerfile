@@ -11,8 +11,7 @@ COPY main.py .
 RUN adduser --disabled-password --gecos "" appuser
 USER appuser
 
-EXPOSE 8080
+EXPOSE 8800
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8800"]
      
-
