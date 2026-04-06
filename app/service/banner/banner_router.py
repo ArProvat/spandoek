@@ -1,6 +1,8 @@
+import asyncio
+import logging
+from typing import Optional, AsyncGenerator, List
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
-from typing import Optional, AsyncGenerator
 from app.service.banner.banner_schema import GenerateData
 from app.service.banner.banner import (
      build_variant_prompts,
@@ -8,10 +10,10 @@ from app.service.banner.banner import (
      _stream_variant,
      sse,
      sse_comment,
+     SSE_HEADERS,
 )
 
-
-
+log = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -75,7 +77,7 @@ async def generate_banners(
                yield sse({"event": "error", "message": f"Prompt build error: {exc}"})
                return
 
-          yield sse({"event": "prompts_ready", "prompts": prompts})
+          #yield sse({"event": "prompts_ready", "prompts": prompts})
 
           queue: asyncio.Queue = asyncio.Queue()
           total, done_count = len(prompts), 0

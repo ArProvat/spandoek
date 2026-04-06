@@ -1,20 +1,29 @@
 import json
 import logging
 import textwrap
+from io import BytesIO
+from fastapi import UploadFile
 from typing import AsyncGenerator, List, Optional
-
+import asyncio
 import openai
 
-from app.config import IMAGE_MODEL
-from app.service.banner.banner_schema import GenerateData, PersonalInfo
+from app.service.banner.banner_schema import GenerateData, PersonalInfo, BannerOccasion,VisualStyle
 from app.service.banner.banner_utilits import (
+     IMAGE_MODEL,
      client,
      save_b64_image,
+     ALLOWED_IMAGE_TYPES,
+     MAX_IMAGE_BYTES,
 )
 
 log = logging.getLogger(__name__)
 
-
+SSE_HEADERS = {
+     "Cache-Control":     "no-cache",
+     "Connection":        "keep-alive",
+     "X-Accel-Buffering": "no",
+     "Content-Type":      "text/event-stream",
+}
 def sse(payload: dict) -> str:
      return f"data: {json.dumps(payload)}\n\n"
 
@@ -187,12 +196,7 @@ async def _stream_variant(
      finally:
           await queue.put({"event": "_done", "variant": variant_idx})
 
-SSE_HEADERS = {
-     "Cache-Control":     "no-cache",
-     "Connection":        "keep-alive",
-     "X-Accel-Buffering": "no",
-     "Content-Type":      "text/event-stream",
-}
+
 
 # ─── Prompt builder ───────────────────────────────────────────────────────────
 
@@ -421,8 +425,8 @@ async def uploads_to_bytes_list(uploads: List[UploadFile]) -> List[bytes]:
      return list(await asyncio.gather(*(upload_to_bytes(u) for u in uploads)))
 
 
-def make_image_file(raw: bytes, filename: str = "image.png") -> io.BytesIO:
+def make_image_file(raw: bytes, filename: str = "image.png") -> BytesIO:
      """Named BytesIO — what the OpenAI SDK image param expects."""
-     buf = io.BytesIO(raw)
+     buf = BytesIO(raw)
      buf.name = filename
      return buf

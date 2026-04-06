@@ -32,10 +32,17 @@ from openai import AsyncOpenAI
 from pydantic import BaseModel, Field, ValidationError
 from app.service.banner.banner_schema import GenerateData, PersonalInfo
 from app.service.banner.banner_router import router as banner_router
-
+from app.service.banner.banner_utilits import (
+        IMAGE_MODEL,
+        BASE_URL,
+        IMAGES_DIR,
+        cleanup_old_images,
+        _periodic_cleanup,
+        log,
+)
 # ─── FastAPI App ──────────────────────────────────────────────────────────────
 
-app = FastAPI(
+App = FastAPI(
     title="Banner Maker API",
     version="5.0.0",
     description=(
@@ -45,7 +52,7 @@ app = FastAPI(
     ),
 )
 
-app.add_middleware(
+App.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
@@ -54,11 +61,11 @@ app.add_middleware(
 )
 
 # Serve saved PNGs at /images/<filename>
-app.mount("/images", StaticFiles(directory=str(IMAGES_DIR)), name="images")
+App.mount("/images", StaticFiles(directory=str(IMAGES_DIR)), name="images")
 
-app.include_router(banner_router)
+App.include_router(banner_router)
 
-@app.on_event("startup")
+@App.on_event("startup")
 async def startup_event() -> None:
     cleanup_old_images()
     asyncio.create_task(_periodic_cleanup())
@@ -68,7 +75,7 @@ async def startup_event() -> None:
     )
 
 
-@app.get("/health", tags=["Utils"], summary="Health check")
+@App.get("/health", tags=["Utils"], summary="Health check")
 async def health():
     return {
         "status":         "ok",

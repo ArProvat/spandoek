@@ -6,12 +6,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY main.py .
+COPY . .
 
 RUN adduser --disabled-password --gecos "" appuser
 USER appuser
 
 EXPOSE 8800
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8800"]
+CMD ["uvicorn", "main:App", "--host", "0.0.0.0", "--port", "8800"]
      
